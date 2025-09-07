@@ -1,7 +1,7 @@
 import mime from 'mime-types';
 import fs from 'fs';
 
-const BOUNDARY = 'dogcamframe';
+const BOUNDARY = 'TAMCamframe';
 
 export function streamImage(image, fps, _req, res) {
     let imageBuffer;

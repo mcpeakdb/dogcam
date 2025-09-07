@@ -118,5 +118,5 @@ app.get('/image', ensureLoggedIn('/login'), (_req, res) => {
 app.get('/healthz', (_req, res) => res.send('ok'));
 
 app.listen(PORT, () => {
-  console.log(`DogCam on http://localhost:${PORT}`);
+  console.log(`TAMCam on http://localhost:${PORT}`);
 });
