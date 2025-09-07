@@ -1,16 +1,18 @@
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
 
-const express = require('express');
-const hbs = require('hbs')
-const session = require('express-session');
-const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
-const mime = require('mime-types');
+import express from 'express';
+import session from 'express-session';
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { ensureLoggedIn } from 'connect-ensure-login';
+
+import { streamImage } from './views/mjpeg.js';
+import dotenv from 'dotenv';
+
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 // Always load .env from this directory
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const {
   GOOGLE_CLIENT_ID,
@@ -31,7 +33,6 @@ const STREAM_IMAGE = path.isAbsolute(process.env.STREAM_IMAGE || '')
   : path.join(__dirname, process.env.STREAM_IMAGE || 'public/dog.png');
 
 const STREAM_FPS = Math.max(1, parseInt(process.env.STREAM_FPS || '10', 10));
-const BOUNDARY = 'dogcamframe';
 
 const app = express();
 app.set('view engine', 'hbs')
@@ -99,33 +100,7 @@ app.get('/', ensureLoggedIn('/login'), (_req, res) => {
 
 // MJPEG stream from a static image (PNG/JPG both OK)
 app.get('/mjpeg', ensureLoggedIn('/login'), (_req, res) => {
-  let imageBuffer;
-  try {
-    imageBuffer = fs.readFileSync(STREAM_IMAGE);
-  } catch {
-    res.status(500).send('Stream image not found');
-    return;
-  }
-
-  const contentType = mime.lookup(STREAM_IMAGE) || 'image/jpeg';
-  const frameInterval = 1000 / STREAM_FPS;
-
-  res.writeHead(200, {
-    'Content-Type': `multipart/x-mixed-replace; boundary=${BOUNDARY}`,
-    'Cache-Control': 'no-cache, no-store, must-revalidate',
-    'Pragma': 'no-cache',
-    'Connection': 'close'
-  });
-
-  const timer = setInterval(() => {
-    res.write(`--${BOUNDARY}\r\n`);
-    res.write(`Content-Type: ${contentType}\r\n`);
-    res.write(`Content-Length: ${imageBuffer.length}\r\n\r\n`);
-    res.write(imageBuffer);
-    res.write('\r\n');
-  }, frameInterval);
-
-  _req.on('close', () => clearInterval(timer));
+  streamImage(STREAM_IMAGE, STREAM_FPS, _req, res);
 });
 
 // Debug: serve the raw image (auth'd)
