@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DogCam</title>
+    <style>
+        body {
+            margin: 0;
+            background: #0b1220;
+            color: #e6e9ef;
+            font-family: system-ui, sans-serif
+        }
+
+        header {
+            padding: 12px 16px;
+            background: #121a2b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .wrap {
+            padding: 16px;
+            display: grid;
+            place-items: center
+        }
+
+        .card {
+            background: #121a2b;
+            padding: 16px;
+            border-radius: 14px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, .35)
+        }
+
+        img {
+            max-width: 90vw;
+            max-height: 75vh;
+            border-radius: 10px;
+            display: block
+        }
+
+        a.btn {
+            color: #0b1220;
+            background: #7dd3fc;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 8px
+        }
+
+        .meta {
+            font-size: 12px;
+            opacity: .8;
+            margin-top: 8px;
+            text-align: center
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div>🐶 DogCam</div>
+        <div><a class="btn" href="/logout">Logout</a></div>
+    </header>
+    <div class="wrap">
+        <div class="card">
+            <img src="/mjpeg" alt="DogCam stream" />
+            <div class="meta">Streaming {{STREAM_IMAGE}} at {{STREAM_FPS}} FPS</div>
+        </div>
+    </div>
+</body>
+
+</html>
