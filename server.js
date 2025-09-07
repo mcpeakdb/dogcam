@@ -2,6 +2,7 @@ import path from 'path';
 
 import express from 'express';
 import session from 'express-session';
+import exphbs from 'express-handlebars';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { ensureLoggedIn } from 'connect-ensure-login';
@@ -35,7 +36,13 @@ const STREAM_IMAGE = path.isAbsolute(process.env.STREAM_IMAGE || '')
 const STREAM_FPS = Math.max(1, parseInt(process.env.STREAM_FPS || '10', 10));
 
 const app = express();
-app.set('view engine', 'hbs')
+app.engine('hbs', exphbs.engine({
+  extname: '.hbs',
+  partialsDir: path.join(__dirname, 'partials')
+}));
+app.set('view engine', 'hbs');
+app.set('views', path.join(__dirname, 'views'));
+
 app.set('trust proxy', 1); // trust ngrok/any proxy for secure cookies
 
 app.use(session({
@@ -63,7 +70,6 @@ passport.use(new GoogleStrategy({
 }, (_at, _rt, profile, done) => {
   const email = (profile.emails?.[0]?.value || '').toLowerCase();
   if (!ALLOWED_EMAILS.split(",").includes(email)) {
-    console.log("Entered if statement");
     return done(null, false, { message: 'Unauthorized email' });
   }
   return done(null, { id: profile.id, displayName: profile.displayName, email });
@@ -95,7 +101,7 @@ app.get('/logout', (req, res, next) => {
 
 // Home page (embeds MJPEG)
 app.get('/', ensureLoggedIn('/login'), (_req, res) => {
-  res.render("index", { STREAM_IMAGE: path.basename(STREAM_IMAGE), STREAM_FPS });
+  res.render("index", { STREAM_IMAGE: path.basename(STREAM_IMAGE), STREAM_FPS, user: _req.user });
 });
 
 // MJPEG stream from a static image (PNG/JPG both OK)
